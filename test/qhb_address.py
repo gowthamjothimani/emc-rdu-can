@@ -39,6 +39,16 @@ class QHB_ADDRESS_MAP:
         self.PD2_MAX_TEMP = 6
         self.PD2_MIN_TEMP = 7
 
+
+        self.IND_PERMISSION = 0
+        self.IND_HEATING_MODE = 1
+        self.IND_VIRTUAL_ID_PACK = 2
+        self.IND_VIRTUAL_ID_CELL = 3
+        self.IND_SOC = 4
+        self.IND_STATE_OF_BATTERY = 5
+        self.IND_CURRENT = 6
+        self.IND_TEMP = 7
+
         # Limits
         self.MAX_CHARGE_VOLT_LSB = 0
         self.MAX_CHARGE_VOLT_MSB = 1

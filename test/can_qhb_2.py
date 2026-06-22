@@ -41,6 +41,14 @@ class CAN_QHB:
             elif msg.arbitration_id == self.addr.PACK_DATA_2:
                 self.decode_pack_data_2(msg.data)
 
+            # MAXIMUM ALLOWED PACK VALUES   
+            elif msg.arbitration_id == self.addr.MAXIMUM_ALLOWED_VALUES:
+                self.decode_pack_data_3(msg.data)
+            
+            elif msg.arbitration_id >= self.addr.INDIVIDUAL_DATA_BASE:
+                self.decode_individual_battery(msg.data)
+            
+
     #  DECODE 
     def decode_pack_data_1(self, data):
         if len(data) < 8:
@@ -88,10 +96,62 @@ class CAN_QHB:
             print(f"Max Temp   : {max_temp}{self.addr.UNIT_TEMP}")
             print(f"Min Temp   : {min_temp}{self.addr.UNIT_TEMP}")
             print(f"Charger Status: {charger_status}")
+   
+        except Exception as e:
+            print(f"[ERROR] PD2 decode failure: {e}")
+
+
+    def decode_pack_data_3(self, data):
+        try:
+            if len(data) < 8:
+                return
+
+            max_charge_voltage = ((data[1] << 8) | data[0]) / 10.0
+            max_charge_current = ((data[3] << 8) | data[2]) / 10.0
+            max_discharge_current = ((data[5] << 8) | data[4]) / 10.0
+            max_discharge_voltage = ((data[7] << 8) | data[6]) / 10.0
+
+            print("\n=== PACK LIMITS (0x351) ===")
+            print(f"Max Charge Voltage   : {max_charge_voltage:.1f}{self.addr.UNIT_VOLT}")
+            print(f"Max Charge Current   : {max_charge_current:.1f}{self.addr.UNIT_CURRENT}")
+            print(f"Max Discharge Current: {max_discharge_current:.1f}{self.addr.UNIT_CURRENT}")
+            print(f"Max Discharge Volt   : {max_discharge_voltage:.1f}{self.addr.UNIT_VOLT}")
+
+        except Exception as e:
+            print(f"[ERROR] 0x351 decode failure: {e}")
+    
+    def decode_individual_battery(self, data):
+        try:
+            if len(data) < 8:
+                return
+            permission = data[self.addr.IND_PERMISSION]
+            heating_mode = data[self.addr.IND_HEATING_MODE]
+            virtual_id = data[self.addr.IND_VIRTUAL_ID_PACK]
+            virtual_cell = data[self.addr.IND_VIRTUAL_ID_CELL]
+            soc = data[self.addr.IND_SOC]
+            state = data[self.addr.IND_STATE_OF_BATTERY]
+            raw_current = data[self.addr.IND_CURRENT]
+
+            if raw_current & 0x80:
+                raw_current = raw_current - 0x100
+
+            current = raw_current / 10.0
+            temp = data[self.addr.IND_TEMP] - self.addr.TEMP_OFFSET
+            state_text = self.addr.BATTERY_STATE.get(state, "Unknown")
+
+            print("\n=== INDIVIDUAL BATTERY (0x48F) ===")
+            print(f"Permission   : {permission}")
+            print(f"Heating Mode : {heating_mode}")
+            print(f"Virtual Pack : {virtual_id}")
+            print(f"Virtual Cell : {virtual_cell}")
+            print(f"SoC          : {soc}{self.addr.UNIT_PERCENT}")
+            print(f"State        : {state} ({state_text})")
+            print(f"Current      : {current:.1f}{self.addr.UNIT_CURRENT}")
+            print(f"Temperature  : {temp}{self.addr.UNIT_TEMP}")
             print("-------------------------------")
 
         except Exception as e:
-            print(f"[ERROR] PD2 decode failure: {e}")
+            print(f"[ERROR] 0x48F decode failure: {e}")
 
 
 #  MAIN 
