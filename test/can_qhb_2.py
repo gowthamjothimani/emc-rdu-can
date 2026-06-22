@@ -53,7 +53,7 @@ class CAN_QHB:
         passive_bat = data[self.addr.PD1_PASSIVE_BAT]
 
         print("\n=== PACK DATA 1 (0x18F) ===")
-        print(f"SOC        : {soc}{self.addr.UNIT_PERCENT}")
+        print(f"SoC        : {soc}{self.addr.UNIT_PERCENT}")
         print(f"Voltage    : {voltage:.2f}{self.addr.UNIT_VOLT}")
         print(f"Active Bat : {active_bat}")
         print(f"Passive Bat: {passive_bat}")
